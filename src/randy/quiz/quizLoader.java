@@ -82,6 +82,7 @@ public class quizLoader {
 	}
 	
 	public static void loadQuestions(String world){
+		quiz.current.put(world+".question", -1);
 		File file = new File("plugins" + File.separator + "EpicQuiz" + File.separator + world +".yml");
 		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 		if(config.contains("q0")){
@@ -97,7 +98,7 @@ public class quizLoader {
 			System.out.print("[EpicQuiz]: Succesfully loaded " + e + " questions for world '"+world+"'.");
 			quiz.startSystem(world);
 		}else{
-			System.out.print("[EpicQuiz]: No questions to load in world '"+world+"', disabling plugin.");
+			System.out.print("[EpicQuiz]: No questions to load in world '"+world+"'.");
 			//Bukkit.getServer().getPluginManager().disablePlugin(Bukkit.getServer().getPluginManager().getPlugin("EpicQuiz"));
 		}
 	}

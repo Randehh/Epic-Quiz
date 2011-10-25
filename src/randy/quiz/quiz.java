@@ -1,7 +1,13 @@
 package randy.quiz;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -17,7 +23,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class quiz extends JavaPlugin{
 	
 	static HashMap<String, String> questions = new HashMap<String, String>();
-	static HashMap<String, Integer> score = new HashMap<String, Integer>();
+	@SuppressWarnings("rawtypes")
+	static Map score = new HashMap<String, Integer>();
 	static HashMap<String, Integer> current = new HashMap<String, Integer>();
 	static HashMap<String, Integer> delay = new HashMap<String, Integer>();
 	static HashMap<String, String> announcer = new HashMap<String, String>();
@@ -29,12 +36,13 @@ public class quiz extends JavaPlugin{
 	
 	@Override
 	public void onDisable() {
-		
+		quizSaver.saveScore();
 	}
 
 	@Override
 	public void onEnable() {
 		quizLoader.loadPlugin();
+		quizSaver.loadScore();
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_CHAT, (Listener) playerListener, Priority.Normal, Bukkit.getServer().getPluginManager().getPlugin("EpicQuiz"));
 	}
 	
@@ -81,22 +89,83 @@ public class quiz extends JavaPlugin{
 		current.put(world+".question", -1);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public boolean onCommand(CommandSender sender, Command command, String commandName, String[] args){
-		if(sender.hasPermission("epicquiz.next")){
-			if(commandName.equalsIgnoreCase("quiz")){
-				if(args.length == 2){
-					if(args[0].equalsIgnoreCase("next")){
-						//TODO World exists?
-						current.put("question", -1);
-						quiz.nextQuestion(args[1]);
+		if(commandName.equalsIgnoreCase("quiz")){
+			if(args.length == 1){
+				if(args[0].equalsIgnoreCase("help")){
+					if(sender.hasPermission("epicquiz.help")){
+						sender.sendMessage(ChatColor.GOLD + "EpicQuiz Help");
+						sender.sendMessage(ChatColor.GOLD + "/quiz help - Display this page.");
+						sender.sendMessage(ChatColor.GOLD + "/quiz next [world] - Goes to the next question of the specified world.");
+						sender.sendMessage(ChatColor.GOLD + "/quiz top [number] - Shows the top scorers.");
+					}else{
+						sender.sendMessage(ChatColor.RED + "EpicQuiz: You don't have permission to do that.");
 						return true;
 					}
 				}
 			}
-		}else{
-			sender.sendMessage(ChatColor.RED + "EpicQuiz: You don't have permission to do that.");
-			return true;
+			if(args.length == 2){
+				if(args[0].equalsIgnoreCase("top")){
+					if(sender.hasPermission("epicquiz.top")){
+						sender.sendMessage(ChatColor.GOLD + "[====   Top Players   ====]");
+						int e = 0;
+						for (Iterator i = sortByValue(score).iterator(); e < Integer.parseInt(args[1]); ) {
+							try{
+								String key = ChatColor.stripColor((String) i.next());
+								sender.sendMessage(ChatColor.YELLOW + key + ": " + score.get(key));
+								e++;
+								if(!i.hasNext()){
+									break;
+								}
+							}catch(NoSuchElementException a){
+							}
+				        }
+						sender.sendMessage(ChatColor.GOLD + "[======================]");
+						return true;
+					}else{
+						sender.sendMessage(ChatColor.RED + "EpicQuiz: You don't have permission to do that.");
+						return true;
+					}
+				}
+				if(args[0].equalsIgnoreCase("next")){
+					if(sender.hasPermission("epicquiz.next")){
+						if(current.get(args[1]+".question") != -1){
+							current.put(args[1]+".question", -1);
+							quiz.nextQuestion(args[1]);
+						}else{
+							sender.sendMessage(ChatColor.RED + "[EpicQuiz]: That world doesn't exist or the next question is incoming.");
+						}
+						return true;
+					}else{
+						sender.sendMessage(ChatColor.RED + "EpicQuiz: You don't have permission to do that.");
+						return true;
+					}
+				}
+			}
 		}
 		return false;
 	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static List sortByValue(final Map m) {
+        List keys = new ArrayList();
+        keys.addAll(m.keySet());
+        Collections.sort(keys, new Comparator() {
+            public int compare(Object o1, Object o2) {
+                Object v1 = m.get(o1);
+                Object v2 = m.get(o2);
+                if (v1 == null) {
+                    return (v2 == null) ? 0 : 1;
+                }
+                else if (v1 instanceof Comparable) {
+                    return ((Comparable) v1).compareTo(v2);
+                }
+                else {
+                    return 0;
+                }
+            }
+        });
+        return keys;
+    }
 }

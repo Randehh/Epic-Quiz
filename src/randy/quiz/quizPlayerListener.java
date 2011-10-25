@@ -3,6 +3,7 @@ package randy.quiz;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerChatEvent;
@@ -20,10 +21,11 @@ public class quizPlayerListener extends PlayerListener{
 			final String world = player.getWorld().getName();
 			final int question = quiz.current.get(world+".question");
 			if(question != -1){
-				String awnser = quiz.questions.get(world+"."+question+".awnser").toLowerCase();
+				String awnser = quiz.questions.get(world+"."+question+".awnser").toLowerCase().replace(".", "");
 				if(message.equals(awnser)){
 					Bukkit.getServer().getScheduler().scheduleAsyncDelayedTask(Bukkit.getServer().getPluginManager().getPlugin("EpicQuiz"), new Runnable() {
-			            public void run(){
+			            @SuppressWarnings("unchecked")
+						public void run(){
 							int itemid = quiz.rewards.get(world+"."+question+".reward.item.id");
 							int itemamount = quiz.rewards.get(world+"."+question+".reward.item.amount");
 							int moneyget = quiz.rewards.get(world+"."+question+".reward.money");
@@ -41,19 +43,19 @@ public class quizPlayerListener extends PlayerListener{
 									rewards = moneyget + " " + quiz.announcer.get("moneyname");
 								}
 							}
-							String announcerwinmessage = quiz.announcer.get("correct").replace("[player]", player.getDisplayName());
-			            	String rewardsmessage = quiz.announcer.get("reward").replace("[rewards]", rewards).replace("[player]", player.getDisplayName());
+			            	String playername = ChatColor.stripColor(player.getDisplayName());
+							String announcerwinmessage = quiz.announcer.get("correct").replace("[player]", ChatColor.stripColor(playername));
+			            	String rewardsmessage = quiz.announcer.get("reward").replace("[rewards]", rewards).replace("[player]", ChatColor.stripColor(player.getDisplayName()));
 			            	List<Player> players = Bukkit.getServer().getWorld(world).getPlayers();
 			            	int e;
 			            	for(e = 0; e < players.size(); e++){
 			            		players.get(e).sendMessage(announcerwinmessage);
 			            		players.get(e).sendMessage(rewardsmessage);
 			            	}
-			            	String playername = player.getDisplayName();
 							if(quiz.score.get(playername) == null){
 								quiz.score.put(playername, 0);
 							}
-							int points = quiz.score.get(playername);
+							int points = Integer.parseInt(quiz.score.get(playername).toString());
 							points++;
 							quiz.score.put(playername, points);
 							quiz.stopSystem(world);
