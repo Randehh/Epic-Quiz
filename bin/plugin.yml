@@ -1,0 +1,7 @@
+name: EpicQuiz
+main: randy.quiz.quiz
+version: 1.0
+commands:
+  quiz:
+    description: Quiz commands for admins.
+    usage: /<command>
