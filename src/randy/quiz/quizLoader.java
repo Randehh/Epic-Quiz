@@ -1,6 +1,7 @@
 package randy.quiz;
 
 import java.io.File;
+import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,9 +13,28 @@ public class quizLoader {
 	public static void loadPlugin(){
 		loadConfig();
 		loadAnnouncer();
+		loadAchievements();
 		loadWorldQuestions();
 	}
 	
+	/*
+	 * Load achievements/benchmarks
+	 */
+	private static void loadAchievements() {
+		File file = new File("plugins" + File.separator + "EpicQuiz" + File.separator + "achievements.yml");
+		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+		HashMap<String, Integer> achievements = quiz.achievements;
+		if(quiz.achievements.get("enabled") == 1){
+			Object[] achievementmarks = config.getConfigurationSection("Achievements").getKeys(false).toArray();
+			int i;
+			for(i = 0; i < achievementmarks.length; i++){
+				achievements.put(achievementmarks[i].toString().replace("a", "")+".reward.money", config.getInt("Achievements."+achievementmarks[i]+".Reward.Money"));
+				achievements.put(achievementmarks[i].toString().replace("a", "")+".reward.item.id", config.getInt("Achievements."+achievementmarks[i]+".Reward.Item.ID"));
+				achievements.put(achievementmarks[i].toString().replace("a", "")+".reward.item.amount", config.getInt("Achievements."+achievementmarks[i]+".Reward.Item.Amount"));
+			}
+		}
+	}
+
 	/*
 	 * Load general options
 	 */
@@ -24,6 +44,12 @@ public class quizLoader {
 		quiz.delay.put("delay", config.getInt("Delay"));
 		quiz.moneyrewards.put("enabled", config.getBoolean("Money_Rewards"));
 		quiz.announcer.put("moneyname", config.getString("Money_Name"));
+		Boolean achievements = config.getBoolean("Achievements");
+		if(achievements){
+			quiz.achievements.put("enabled", 1);
+		}else{
+			quiz.achievements.put("enabled", 0);
+		}
 	}
 	
 	
@@ -55,6 +81,8 @@ public class quizLoader {
 		quiz.announcer.put("correct", config.getString("Correct").replace("[announcername]", announcername));
 		quiz.announcer.put("ask", config.getString("Ask").replace("[announcername]", announcername));
 		quiz.announcer.put("reward", config.getString("Reward").replace("[announcername]", announcername));
+		quiz.announcer.put("achievement", config.getString("Achievement").replace("[announcername]", announcername));
+		quiz.announcer.put("achievementreward", config.getString("Achievement_Reward").replace("[announcername]", announcername));
 	}
 	
 	
@@ -99,7 +127,6 @@ public class quizLoader {
 			quiz.startSystem(world);
 		}else{
 			System.out.print("[EpicQuiz]: No questions to load in world '"+world+"'.");
-			//Bukkit.getServer().getPluginManager().disablePlugin(Bukkit.getServer().getPluginManager().getPlugin("EpicQuiz"));
 		}
 	}
 }

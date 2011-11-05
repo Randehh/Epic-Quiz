@@ -29,7 +29,9 @@ public class quiz extends JavaPlugin{
 	static HashMap<String, Integer> delay = new HashMap<String, Integer>();
 	static HashMap<String, String> announcer = new HashMap<String, String>();
 	static HashMap<String, Boolean> moneyrewards = new HashMap<String, Boolean>();
+	static HashMap<String, Boolean> banlist = new HashMap<String, Boolean>();
 	static HashMap<String, Integer> rewards = new HashMap<String, Integer>();
+	static HashMap<String, Integer> achievements = new HashMap<String, Integer>();
 	
 	
 	private final quizPlayerListener playerListener = new quizPlayerListener();
@@ -99,6 +101,8 @@ public class quiz extends JavaPlugin{
 						sender.sendMessage(ChatColor.GOLD + "/quiz help - Display this page.");
 						sender.sendMessage(ChatColor.GOLD + "/quiz next [world] - Goes to the next question of the specified world.");
 						sender.sendMessage(ChatColor.GOLD + "/quiz top [number] - Shows the top scorers.");
+						sender.sendMessage(ChatColor.GOLD + "/quiz ban [playername] - Bans a player form the quiz.");
+						sender.sendMessage(ChatColor.GOLD + "/quiz unban [playername] - Unbans a player from the quiz.");
 					}else{
 						sender.sendMessage(ChatColor.RED + "EpicQuiz: You don't have permission to do that.");
 						return true;
@@ -106,6 +110,44 @@ public class quiz extends JavaPlugin{
 				}
 			}
 			if(args.length == 2){
+				if(args[0].equalsIgnoreCase("ban")){
+					if(sender.hasPermission("epicquiz.ban")){
+						String playername = args[1];
+						if(banlist.containsKey(playername)){
+							if(banlist.get(playername).equals(true)){
+								sender.sendMessage(playername + " is already banned from the quiz.");
+								return true;
+							}else{
+								banlist.put(playername, true);
+								sender.sendMessage(playername + " is now banned from the quiz.");
+								return true;
+							}
+						}else{
+							banlist.put(playername, true);
+							sender.sendMessage(playername + " is now banned from the quiz.");
+							return true;
+						}
+					}
+				}
+				if(args[0].equalsIgnoreCase("unban")){
+					if(sender.hasPermission("epicquiz.unban")){
+						String playername = args[1];
+						if(banlist.containsKey(playername)){
+							if(banlist.get(playername).equals(false)){
+								sender.sendMessage(playername + " is not banned.");
+								return true;
+							}else{
+								banlist.put(playername, false);
+								sender.sendMessage(playername + " is now banned from the quiz.");
+								return true;
+							}
+						}else{
+							banlist.put(playername, false);
+							sender.sendMessage(playername + " is now banned from the quiz.");
+							return true;
+						}
+					}
+				}
 				if(args[0].equalsIgnoreCase("top")){
 					if(sender.hasPermission("epicquiz.top")){
 						sender.sendMessage(ChatColor.GOLD + "[====   Top Players   ====]");
